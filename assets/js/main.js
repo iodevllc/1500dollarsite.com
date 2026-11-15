@@ -85,6 +85,18 @@
       if (button) button.disabled = true;
       setStatus('loading', 'Sending…');
 
+      // Non-production builds: don't send anything, just pretend it worked.
+      if (form.dataset.dryRun !== undefined) {
+        console.info('[dry run] Form not submitted. Production would POST to ' + form.dataset.dryRun + ':',
+          Object.fromEntries(new FormData(form)));
+        await new Promise(resolve => setTimeout(resolve, 600));
+        form.reset();
+        setStatus('success', (form.dataset.success || 'Thanks! Your message has been sent.') +
+          ' (Test mode: nothing was actually sent.)');
+        if (button) button.disabled = false;
+        return;
+      }
+
       try {
         const response = await fetch(form.action, {
           method: 'POST',
